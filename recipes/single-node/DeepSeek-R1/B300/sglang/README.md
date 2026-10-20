@@ -27,12 +27,21 @@ model:
 
 ## Recipes
 
-| file | ISL / OSL | parallelism sweep | spec decode | context length |
+| file | ISL / OSL | topology | spec decode | context length |
 |---|---|---|---|---:|
 | `1k1k-mtp.yaml` | 1k / 1k | TP8 · PP1 · DP1 · EP8 | EAGLE (2 steps, 3 draft tokens) | 2176 |
 | `8k1k-mtp.yaml` | 8k / 1k | TP8 · PP1 · DP1 · EP8 | EAGLE (2 steps, 3 draft tokens) | 9344 |
 
 Both recipes use a fixed full-node topology that matches the eight-GPU worker.
+TP8 uses the worker's eight GPUs. PP1 follows SGLang 0.5.10.post1's
+[restriction on speculative decoding with pipeline parallelism](https://github.com/sgl-project/sglang/blob/v0.5.10.post1/python/sglang/srt/server_args.py#L6067),
+which applies to the EAGLE configuration here. DP1 keeps one model replica
+with DP attention disabled; EP8 partitions experts across that TP group.
+
+This is a feasibility baseline for measuring the concurrency curve. Selecting
+a Pareto frontier across topologies also requires measured latency and
+throughput for other supported TP/EP combinations. No B300 topology comparison
+is included here, so TP8/EP8 should not be interpreted as a measured optimum.
 Benchmark concurrency sweeps `1 → 1024`, `random_range_ratio: 0.8`, `sa-bench`.
 
 ## Key flags
